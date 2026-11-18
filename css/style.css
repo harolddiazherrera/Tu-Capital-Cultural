@@ -241,6 +241,7 @@ footer a { color: inherit; }
   #informe-print h1 { font-size: 16pt; margin: 0 0 2pt; }
   #informe-print .meta { margin: 0 0 8pt; padding-bottom: 4pt; border-bottom: 1.5pt solid #000; font-size: 10.5pt; }
   #informe-print h2 { font-size: 12.5pt; margin: 10pt 0 4pt; padding-bottom: 2pt; border-bottom: 0.75pt solid #999; break-after: avoid-page; }
+  #informe-print h2.nueva-hoja { break-before: page; margin-top: 0; }
   #informe-print p, #informe-print li { margin: 3pt 0; text-align: justify; hyphens: auto; }
   #informe-print .lista-etapas { list-style: none; padding: 0; margin: 4pt 0; }
   #informe-print .lista-etapas li { text-align: left; margin: 2pt 0; }

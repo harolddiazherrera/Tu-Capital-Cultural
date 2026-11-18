@@ -467,13 +467,13 @@
         <ul class="lista-etapas">${res.map((r, i) => `<li><strong>${i + 1}</strong> = ${r.nombre}: cultural ${r.indices.cultural}, económico ${r.indices.economico}</li>`).join("")}</ul></div>
       </div>
 
-      <h2>4. Análisis detallado</h2>
+      <h2 class="nueva-hoja">4. Análisis detallado</h2>
       <div class="analisis">${ana}</div>`;
     dibujarEvolucion(res, $("#print-evolucion"), { colores: PRINT_COL, fontScale: 1.15, sinTooltip: true, valores: true });
     dibujarCuadrante(res, $("#print-cuadrante"), { colores: PRINT_COL, fontScale: 1.2, sinTooltip: true, idMarker: "flecha-print" });
     // Renumerar "Fuentes" como sección 5 y quitar el pie de leyenda duplicado
     const h4f = $$("#informe-print .analisis h4").find((h) => h.textContent === "Fuentes");
-    if (h4f) { const h2 = document.createElement("h2"); h2.textContent = "5. Fuentes"; h4f.replaceWith(h2); }
+    if (h4f) { const h2 = document.createElement("h2"); h2.className = "nueva-hoja"; h2.textContent = "5. Fuentes"; h4f.replaceWith(h2); }
     const pie = $("#print-cuadrante .ayuda"); if (pie) pie.remove();
   }
 
