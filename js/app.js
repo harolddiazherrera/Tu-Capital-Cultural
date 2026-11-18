@@ -364,10 +364,6 @@
       .join("");
 
     app.innerHTML = `
-      <div class="solo-print encabezado-print">
-        <h1>${Q.meta.titulo}</h1>
-        <p>${esc(state.perfil.nombre)} · ${Q.edad.opciones[state.perfil.edad].texto} · ${fmtFecha(new Date().toISOString())}</p>
-      </div>
       <section class="card interpretacion" style="--color:${DIM.cultural.color}">
         <p class="eyebrow">${esc(state.perfil.nombre)} · Posición en ${actual.nombre}</p>
         <h2>${cuad.titulo}</h2>
@@ -399,7 +395,7 @@
         <div id="grafico-cuadrante" class="grafico"></div>
       </section>
 
-      <section class="card analisis" id="analisis">
+      <section class="card analisis no-print" id="analisis">
         <h3>Análisis detallado</h3>
         <p class="ayuda">Fundamentos de los valores obtenidos, lectura de las etapas en que cada capital disminuyó y recomendaciones basadas en estudios y fuentes verificables (referencias entre corchetes).</p>
         <div id="analisis-cuerpo"></div>
@@ -434,9 +430,58 @@
     }, null, 2);
   }
 
+  /* ───────────── Informe para impresión / PDF ───────────── */
+  const PRINT_COL = { cultural: "#1f4ea1", economico: "#c0392b", punto: "#1f4ea1", ultimo: "#c0392b", camino: "#111", umbral: "#1e8449" };
+
+  function construirInforme(res) {
+    const actual = res[res.length - 1];
+    const cuad = cuadrante(actual.indices);
+    const ana = window.ANALYSIS.generar(res, Q, state.perfil.respuestas).html;
+    const generales = Q.dimensiones.map((d) => {
+      const tr = trayectoria(res.map((r) => r.indices[d.id]));
+      return `<tr><td><strong>${d.nombre}</strong></td><td class="num">${actual.indices[d.id]} / 100</td><td>${tr ? `${tr.titulo} (${tr.delta >= 0 ? "+" : ""}${tr.delta} puntos desde ${res[0].nombre.toLowerCase()})` : "Una sola etapa evaluada"}</td></tr>`;
+    }).join("");
+    const tabla = `<table class="tabla-print"><thead><tr><th>Etapa</th>${Q.dimensiones.map((d) => `<th>${d.nombre}</th>`).join("")}</tr></thead>
+      <tbody>${res.map((r) => `<tr><td>${r.nombre}</td>${Q.dimensiones.map((d) => `<td class="num">${r.indices[d.id]} <span class="muted">(${r.detalle[d.id].puntos}/${r.detalle[d.id].max} pts)</span></td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
+    let el = $("#informe-print");
+    if (!el) { el = document.createElement("div"); el.id = "informe-print"; document.body.appendChild(el); }
+    el.innerHTML = `
+      <h1>${Q.meta.titulo}</h1>
+      <p class="meta"><strong>${esc(state.perfil.nombre)}</strong> · ${Q.edad.opciones[state.perfil.edad].texto} · ${fmtFecha(new Date().toISOString())}</p>
+
+      <h2>1. Resultados generales</h2>
+      <p><strong>Posición en ${actual.nombre.toLowerCase()}: ${cuad.titulo}.</strong> ${cuad.texto}</p>
+      <table class="tabla-print"><tbody>${generales}</tbody></table>
+
+      <h2>2. Evolución del capital por etapa de vida</h2>
+      <div class="fila-print">
+        <div class="col-grafico" id="print-evolucion"></div>
+        <div class="col-tabla">${tabla}</div>
+      </div>
+
+      <h2>3. Recorrido en el espacio social</h2>
+      <div class="fila-print">
+        <div class="col-cuadrante" id="print-cuadrante"></div>
+        <div class="col-texto"><p>Eje horizontal: capital cultural. Eje vertical: capital económico. Las líneas punteadas verdes marcan el umbral de 50 puntos. Cada punto numerado es una etapa, unida en orden cronológico; el punto rojo es la última etapa evaluada.</p>
+        <p>${res.map((r, i) => `${i + 1} = ${r.nombre} (${r.indices.cultural}, ${r.indices.economico})`).join("; ")}.</p></div>
+      </div>
+
+      <h2>4. Análisis detallado</h2>
+      <div class="analisis">${ana}</div>`;
+    dibujarEvolucion(res, $("#print-evolucion"), { colores: PRINT_COL, fontScale: 1.15, sinTooltip: true, valores: true });
+    dibujarCuadrante(res, $("#print-cuadrante"), { colores: PRINT_COL, fontScale: 1.2, sinTooltip: true, idMarker: "flecha-print" });
+    // Renumerar "Fuentes" como sección 5 y quitar el pie de leyenda duplicado
+    const h4f = $$("#informe-print .analisis h4").find((h) => h.textContent === "Fuentes");
+    if (h4f) { const h2 = document.createElement("h2"); h2.textContent = "5. Fuentes"; h4f.replaceWith(h2); }
+    const pie = $("#print-cuadrante .ayuda"); if (pie) pie.remove();
+  }
+
   /* ───────────── Gráfico de líneas: evolución ───────────── */
-  function dibujarEvolucion(res) {
-    const W = 640, H = 340, m = { t: 24, r: 150, b: 56, l: 44 };
+  function dibujarEvolucion(res, cont = $("#grafico-evolucion"), opts = {}) {
+    const col = opts.colores || { cultural: DIM.cultural.color, economico: DIM.economico.color };
+    const fs = opts.fontScale || 1;
+    const W = 640, H = 340, m = { t: 24, r: 170, b: 56, l: 44 };
     const pw = W - m.l - m.r, ph = H - m.t - m.b;
     const n = res.length;
     const sx = (i) => (n === 1 ? m.l + pw / 2 : m.l + (i / (n - 1)) * pw);
@@ -452,28 +497,31 @@
 
     const series = Q.dimensiones
       .map((d) => {
+        const c = col[d.id];
         const pts = res.map((r, i) => [sx(i), sy(r.indices[d.id]), r.indices[d.id], r.nombre]);
         const path = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]} ${p[1]}`).join(" ");
-        const marcas = pts.map(([x, y, v, nombre]) => `<g class="marca" data-tip="${nombre}: ${d.nombre} ${v}"><circle cx="${x}" cy="${y}" r="14" class="hit"/><circle cx="${x}" cy="${y}" r="6" fill="${d.color}" class="ring"/></g>`).join("");
+        const marcas = pts.map(([x, y, v, nombre]) => `<g class="marca" data-tip="${nombre}: ${d.nombre} ${v}"><circle cx="${x}" cy="${y}" r="14" class="hit"/><circle cx="${x}" cy="${y}" r="6" fill="${c}" class="ring"/>${opts.valores ? `<text x="${x}" y="${y - 10}" text-anchor="middle" class="tick" style="font-size:${11 * fs}px;font-weight:600">${v}</text>` : ""}</g>`).join("");
         const fin = finales.find((f) => f.d.id === d.id);
-        return `<path d="${path}" fill="none" stroke="${d.color}" stroke-width="2" stroke-linejoin="round"/>${marcas}
-          <text x="${m.l + pw + 12}" y="${fin.y + 4}" class="serie-label">${d.nombre} · ${res[n - 1].indices[d.id]}</text>`;
+        return `<path d="${path}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"/>${marcas}
+          <text x="${m.l + pw + 12}" y="${fin.y + 4}" class="serie-label" style="font-size:${12 * fs}px">${d.nombre} · ${res[n - 1].indices[d.id]}</text>`;
       })
       .join("");
 
-    $("#grafico-evolucion").innerHTML = `<div class="tooltip" hidden></div>
-      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución del capital cultural y económico por etapa de vida">
+    cont.innerHTML = `<div class="tooltip" hidden></div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución del capital cultural y económico por etapa de vida" style="font-size:${fs}em">
         ${grid}<line x1="${m.l}" y1="${m.t + ph}" x2="${m.l + pw}" y2="${m.t + ph}" class="eje"/>${xLabels}${series}
       </svg>`;
-    activarTooltip($("#grafico-evolucion"));
+    if (!opts.sinTooltip) activarTooltip(cont);
   }
 
   /* ───────────── Gráfico de dispersión: recorrido en el cuadrante ───────────── */
-  function dibujarCuadrante(res) {
+  function dibujarCuadrante(res, cont = $("#grafico-cuadrante"), opts = {}) {
     const W = 420, H = 420, m = { t: 20, r: 20, b: 44, l: 48 };
     const pw = W - m.l - m.r, ph = H - m.t - m.b;
     const sx = (v) => m.l + (v / 100) * pw, sy = (v) => m.t + ph - (v / 100) * ph;
-    const cc = DIM.cultural.color, ce = DIM.economico.color;
+    const col = opts.colores || { cultural: DIM.cultural.color, economico: DIM.economico.color, punto: DIM.cultural.color, ultimo: DIM.cultural.color, camino: "", umbral: "" };
+    const cc = col.cultural, ce = col.economico, cp = col.punto, cu = col.ultimo;
+    const fs = opts.fontScale || 1;
     const grid = [0, 25, 50, 75, 100]
       .map((t) => `<line x1="${sx(t)}" y1="${m.t}" x2="${sx(t)}" y2="${m.t + ph}" class="grid"/><line x1="${m.l}" y1="${sy(t)}" x2="${m.l + pw}" y2="${sy(t)}" class="grid"/>
         <text x="${sx(t)}" y="${m.t + ph + 18}" text-anchor="middle" class="tick">${t}</text><text x="${m.l - 8}" y="${sy(t) + 4}" text-anchor="end" class="tick">${t}</text>`)
@@ -482,18 +530,20 @@
       .map(([qx, qy, t]) => { const l = t.split("\n"); return `<text x="${sx(qx)}" y="${sy(qy) - (l.length - 1) * 7}" text-anchor="middle" class="cuad">${l.map((s, i) => `<tspan x="${sx(qx)}" dy="${i === 0 ? 0 : 14}">${s}</tspan>`).join("")}</text>`; })
       .join("");
     const pts = res.map((r) => [sx(r.indices.cultural), sy(r.indices.economico), r]);
-    const camino = pts.length > 1 ? `<path d="${pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]} ${p[1]}`).join(" ")}" class="camino" marker-end="url(#flecha)"/>` : "";
+    const idm = opts.idMarker || "flecha";
+    const camino = pts.length > 1 ? `<path d="${pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]} ${p[1]}`).join(" ")}" class="camino" ${col.camino ? `style="stroke:${col.camino}"` : ""} marker-end="url(#${idm})"/>` : "";
+    const rp = opts.fontScale ? 1.3 : 1;
     const puntos = pts
       .map(([x, y, r], i) => { const u = i === pts.length - 1; return `<g class="marca" data-tip="${r.nombre}: cultural ${r.indices.cultural}, económico ${r.indices.economico}">
-        <circle cx="${x}" cy="${y}" r="14" class="hit"/><circle cx="${x}" cy="${y}" r="${u ? 8 : 6}" class="ring" fill="${u ? cc : "var(--surface)"}" stroke="${cc}" stroke-width="2"/>
-        <text x="${x}" y="${y + (u ? 4 : 3.5)}" text-anchor="middle" class="idx" fill="${u ? "#fff" : cc}">${i + 1}</text></g>`; })
+        <circle cx="${x}" cy="${y}" r="14" class="hit"/><circle cx="${x}" cy="${y}" r="${(u ? 8 : 6) * rp}" class="ring" fill="${u ? cu : "var(--surface)"}" stroke="${u ? cu : cp}" stroke-width="2"/>
+        <text x="${x}" y="${y + (u ? 4 : 3.5) * rp}" text-anchor="middle" class="idx" style="font-size:${9 * fs}px" fill="${u ? "#fff" : cp}">${i + 1}</text></g>`; })
       .join("");
 
-    $("#grafico-cuadrante").innerHTML = `<div class="tooltip" hidden></div>
-      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Recorrido por etapas en el plano capital cultural vs económico">
-        <defs><marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${cc}"/></marker></defs>
+    cont.innerHTML = `<div class="tooltip" hidden></div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Recorrido por etapas en el plano capital cultural vs económico" style="font-size:${fs}em">
+        <defs><marker id="${idm}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${col.camino || cc}"/></marker></defs>
         ${grid}
-        <line x1="${sx(50)}" y1="${m.t}" x2="${sx(50)}" y2="${m.t + ph}" class="umbral"/><line x1="${m.l}" y1="${sy(50)}" x2="${m.l + pw}" y2="${sy(50)}" class="umbral"/>
+        <line x1="${sx(50)}" y1="${m.t}" x2="${sx(50)}" y2="${m.t + ph}" class="umbral" ${col.umbral ? `style="stroke:${col.umbral}"` : ""}/><line x1="${m.l}" y1="${sy(50)}" x2="${m.l + pw}" y2="${sy(50)}" class="umbral" ${col.umbral ? `style="stroke:${col.umbral}"` : ""}/>
         ${etiquetas}
         <line x1="${m.l}" y1="${m.t + ph}" x2="${m.l + pw}" y2="${m.t + ph}" class="eje"/><line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${m.t + ph}" class="eje"/>
         <text x="${m.l + pw / 2}" y="${H - 6}" text-anchor="middle" class="eje-label" fill="${cc}">Capital cultural</text>
@@ -501,7 +551,7 @@
         ${camino}${puntos}
       </svg>
       <p class="ayuda centrado">${res.map((r, i) => `${i + 1} = ${r.nombre}`).join(" · ")}</p>`;
-    activarTooltip($("#grafico-cuadrante"));
+    if (!opts.sinTooltip) activarTooltip(cont);
   }
 
   function activarTooltip(cont) {
@@ -605,7 +655,7 @@
       case "copiar":
         copiar($("#json-salida").value, $("#copiado")); break;
       case "pdf": {
-        const d = $("details.tabla-wrap"); if (d) d.open = true;
+        construirInforme(calcular());
         document.title = `Resultados - ${state.perfil.nombre} - ${Q.meta.titulo}`;
         try { window.print(); } catch (e) { /* algunos entornos bloquean la impresión */ }
         setTimeout(() => { document.title = Q.meta.titulo; }, 1000);

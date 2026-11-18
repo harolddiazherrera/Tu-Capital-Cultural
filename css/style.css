@@ -227,27 +227,50 @@ footer a { color: inherit; }
 .fuentes { padding-left: 20px; font-size: 0.85rem; color: var(--ink-2); }
 .fuentes li { margin: 6px 0; word-break: break-word; }
 .fuentes a { color: var(--ink-3); }
-.solo-print { display: none; }
+#informe-print { display: none; }
 
+/* ───────── Informe de impresión (solo @media print) ───────── */
 @media print {
-  @page { margin: 16mm; }
-  body { background: #fff; color: #111; font-size: 11pt; }
-  .topbar, #progreso, footer, .no-print, .acciones, .tooltip, .pendiente button { display: none !important; }
-  .solo-print { display: block; }
-  .encabezado-print { border-bottom: 2px solid #111; margin-bottom: 14px; padding-bottom: 6px; }
-  .encabezado-print h1 { font-size: 16pt; margin: 0 0 4px; }
-  .encabezado-print p { margin: 0; color: #444; }
-  main { max-width: none; padding: 0; }
-  .card { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; padding: 14px 16px; margin-bottom: 12px; background: #fff; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .grafico { max-width: 420px; }
-  .grafico.ancho { max-width: 100%; }
-  .analisis { break-before: page; }
-  .tabla-wrap summary { display: none; }
-  .tabla-wrap { display: block; }
-  details.tabla-wrap > * { display: block; }
-  .hero-num { font-size: 2.2rem; }
-  .rec.prioridad { background: #eef2fb; border-left-color: #3B6FD6; }
-  a { color: #444; text-decoration: none; }
-  :root { --surface: #fff; --ink: #111; --ink-2: #333; --ink-3: #666; --line: #ccc; --bg: #f3f3f3; }
+  @page { size: A4; margin: 15mm 14mm; }
+  :root { --surface: #fff; --ink: #000; --ink-2: #222; --ink-3: #555; --line: #ccc; --bg: #fff; }
+  html, body { background: #fff !important; color: #000; }
+  body { font-size: 10.5pt; line-height: 1.35; }
+  body > *:not(#informe-print) { display: none !important; }
+  #informe-print { display: block; width: 100%; max-width: 100%; }
+  #informe-print * { box-sizing: border-box; max-width: 100%; }
+  #informe-print h1 { font-size: 16pt; margin: 0 0 2pt; }
+  #informe-print .meta { margin: 0 0 8pt; padding-bottom: 4pt; border-bottom: 1.5pt solid #000; font-size: 10.5pt; }
+  #informe-print h2 { font-size: 12.5pt; margin: 10pt 0 4pt; padding-bottom: 2pt; border-bottom: 0.75pt solid #999; break-after: avoid-page; }
+  #informe-print p { margin: 3pt 0; }
+  #informe-print .analisis h4 { font-size: 11pt; margin: 8pt 0 2pt; break-after: avoid-page; }
+  #informe-print .analisis p { margin: 3pt 0; }
+  #informe-print .lista li, #informe-print .recs li { margin: 3pt 0; }
+  #informe-print .rec.prioridad { background: none; border-left: 2pt solid #1f4ea1; padding: 2pt 6pt; border-radius: 0; list-style-position: outside; }
+  #informe-print .tag { color: #1f4ea1; }
+  #informe-print .ref { color: #555; }
+  #informe-print .fuentes { font-size: 9pt; color: #222; }
+  #informe-print .fuentes a { color: #333; }
+  #informe-print .ayuda { color: #444; font-size: 9pt; }
+  .tabla-print { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 4pt 0; }
+  .tabla-print th, .tabla-print td { border-bottom: 0.5pt solid #999; padding: 3pt 5pt; text-align: left; vertical-align: top; }
+  .tabla-print th { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .03em; color: #333; }
+  .tabla-print .num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tabla-print .muted { color: #555; font-size: 8.5pt; }
+  .fila-print { display: flex; gap: 10pt; align-items: flex-start; break-inside: avoid; }
+  .col-grafico { flex: 0 0 62%; }
+  .col-tabla { flex: 1 1 auto; }
+  .col-cuadrante { flex: 0 0 52%; }
+  .col-texto { flex: 1 1 auto; font-size: 10pt; }
+  #informe-print svg { width: 100%; height: auto; display: block; }
+  #informe-print .grid { stroke: #ccc; stroke-width: 0.8; }
+  #informe-print .eje { stroke: #000; stroke-width: 1; }
+  #informe-print .umbral { stroke: #1e8449; stroke-width: 1.2; stroke-dasharray: 4 3; }
+  #informe-print .tick { fill: #000; }
+  #informe-print .cuad { fill: #000; font-style: italic; }
+  #informe-print .eje-label { font-weight: 700; }
+  #informe-print .serie-label { fill: #000; font-weight: 700; }
+  #informe-print .camino { fill: none; stroke: #111; stroke-width: 1.5; stroke-dasharray: 3 3; }
+  #informe-print .ring { stroke-width: 2; }
+  #informe-print .idx { font-weight: 700; }
+  #informe-print .hit, #informe-print .tooltip { display: none; }
 }
