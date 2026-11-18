@@ -11,6 +11,8 @@ Es una aplicación estática (HTML + CSS + JavaScript, sin backend): se puede ab
 - **Evaluación por etapas de vida:** infancia (0–12), adolescencia (13–18), juventud (19–29), adultez (30–49) y adultez mayor (50+). Se evalúan solo las etapas ya vividas según la edad declarada; al cambiar de rango de edad se habilitan las etapas nuevas sin perder lo respondido.
 - **8 preguntas por etapa:** 4 de capital cultural y 4 de capital económico. En infancia y adolescencia apuntan al hogar de origen; en las etapas adultas, al hogar propio.
 - **Resultados:** índice 0–100 por capital y etapa, gráfico de evolución, clasificación de la trayectoria (ascendente / estable / descendente), posición y recorrido en el plano cultural × económico, y exportación en JSON.
+- **Análisis detallado:** fundamentos de los valores obtenidos, explicación de las etapas en que cada capital disminuyó y recomendaciones priorizadas, con referencias a estudios y fuentes verificables (Bourdieu; Evans et al. 2010; OCDE 2018 y PIAAC 2023; ENPCCL 2024; EFH 2024 del Banco Central; CIMA-UDD; FNE). Las reglas y textos están en `js/analysis.js`.
+- **Exportar PDF:** botón que imprime solo los resultados y el análisis (usa el diálogo de impresión del navegador → "Guardar como PDF").
 - **Perfiles guardados:** listado de todas las personas evaluadas en el navegador, con avance, último índice, acceso a resultados, continuación, eliminación, exportación e importación en JSON.
 
 ## Estructura
@@ -20,6 +22,7 @@ index.html        Página principal
 css/style.css     Estilos (incluye modo oscuro automático)
 js/questions.js   Banco de preguntas, puntajes, etapas e interpretaciones
 js/storage.js     Persistencia de perfiles en localStorage
+js/analysis.js    Reglas del análisis fundamentado, recomendaciones y fuentes
 js/app.js         Lógica de navegación, cálculo y gráficos (SVG)
 ```
 

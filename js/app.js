@@ -364,6 +364,10 @@
       .join("");
 
     app.innerHTML = `
+      <div class="solo-print encabezado-print">
+        <h1>${Q.meta.titulo}</h1>
+        <p>${esc(state.perfil.nombre)} · ${Q.edad.opciones[state.perfil.edad].texto} · ${fmtFecha(new Date().toISOString())}</p>
+      </div>
       <section class="card interpretacion" style="--color:${DIM.cultural.color}">
         <p class="eyebrow">${esc(state.perfil.nombre)} · Posición en ${actual.nombre}</p>
         <h2>${cuad.titulo}</h2>
@@ -395,19 +399,28 @@
         <div id="grafico-cuadrante" class="grafico"></div>
       </section>
 
-      <section class="card">
+      <section class="card analisis" id="analisis">
+        <h3>Análisis detallado</h3>
+        <p class="ayuda">Fundamentos de los valores obtenidos, lectura de las etapas en que cada capital disminuyó y recomendaciones basadas en estudios y fuentes verificables (referencias entre corchetes).</p>
+        <div id="analisis-cuerpo"></div>
+      </section>
+
+      <section class="card no-print">
         <h3>Exportar este perfil</h3>
         <p class="ayuda">Copia el resultado en formato JSON para guardarlo o procesarlo.</p>
         <textarea id="json-salida" readonly rows="6"></textarea>
         <div class="acciones">
+          <button class="btn primario" data-accion="pdf">Exportar PDF (solo resultados)</button>
           <button class="btn" data-accion="copiar">Copiar JSON</button>
           <button class="btn" data-accion="revisar">Revisar respuestas</button>
           <button class="btn" data-accion="perfiles">Perfiles guardados</button>
           <button class="btn primario" data-accion="inicio">Inicio</button>
         </div>
         <p id="copiado" class="ayuda" hidden>Copiado al portapapeles.</p>
+        <p id="pdf-ayuda" class="ayuda" hidden>Si no se abrió el diálogo de impresión, presiona Ctrl+P (Cmd+P en Mac) y elige "Guardar como PDF": la página ya está preparada para imprimir solo los resultados.</p>
       </section>`;
 
+    $("#analisis-cuerpo").innerHTML = window.ANALYSIS.generar(res, Q, state.perfil.respuestas).html;
     dibujarEvolucion(res);
     dibujarCuadrante(res);
     $("#json-salida").value = JSON.stringify({
@@ -591,6 +604,14 @@
         break;
       case "copiar":
         copiar($("#json-salida").value, $("#copiado")); break;
+      case "pdf": {
+        const d = $("details.tabla-wrap"); if (d) d.open = true;
+        document.title = `Resultados - ${state.perfil.nombre} - ${Q.meta.titulo}`;
+        try { window.print(); } catch (e) { /* algunos entornos bloquean la impresión */ }
+        setTimeout(() => { document.title = Q.meta.titulo; }, 1000);
+        $("#pdf-ayuda").hidden = false;
+        break;
+      }
     }
   });
 

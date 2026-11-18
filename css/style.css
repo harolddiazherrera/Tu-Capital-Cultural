@@ -214,3 +214,40 @@ footer a { color: inherit; }
 .acciones-fila .btn { margin: 2px 2px 2px 0; }
 #zona-io { margin-top: 16px; }
 .topbar-der { display: flex; align-items: center; gap: 12px; }
+
+/* ───────── Análisis y exportación PDF (v0.4) ───────── */
+.analisis h4 { margin: 20px 0 6px; font-size: 1.02rem; }
+.analisis p { margin: 6px 0; }
+.lista { padding-left: 20px; margin: 6px 0; }
+.lista li { margin: 6px 0; }
+.recs li { margin: 10px 0; }
+.rec.prioridad { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 6px; list-style-position: inside; }
+.tag { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); margin-left: 6px; }
+.ref { color: var(--ink-3); font-size: 0.82em; }
+.fuentes { padding-left: 20px; font-size: 0.85rem; color: var(--ink-2); }
+.fuentes li { margin: 6px 0; word-break: break-word; }
+.fuentes a { color: var(--ink-3); }
+.solo-print { display: none; }
+
+@media print {
+  @page { margin: 16mm; }
+  body { background: #fff; color: #111; font-size: 11pt; }
+  .topbar, #progreso, footer, .no-print, .acciones, .tooltip, .pendiente button { display: none !important; }
+  .solo-print { display: block; }
+  .encabezado-print { border-bottom: 2px solid #111; margin-bottom: 14px; padding-bottom: 6px; }
+  .encabezado-print h1 { font-size: 16pt; margin: 0 0 4px; }
+  .encabezado-print p { margin: 0; color: #444; }
+  main { max-width: none; padding: 0; }
+  .card { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; padding: 14px 16px; margin-bottom: 12px; background: #fff; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grafico { max-width: 420px; }
+  .grafico.ancho { max-width: 100%; }
+  .analisis { break-before: page; }
+  .tabla-wrap summary { display: none; }
+  .tabla-wrap { display: block; }
+  details.tabla-wrap > * { display: block; }
+  .hero-num { font-size: 2.2rem; }
+  .rec.prioridad { background: #eef2fb; border-left-color: #3B6FD6; }
+  a { color: #444; text-decoration: none; }
+  :root { --surface: #fff; --ink: #111; --ink-2: #333; --ink-3: #666; --line: #ccc; --bg: #f3f3f3; }
+}
