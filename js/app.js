@@ -439,10 +439,10 @@
     const ana = window.ANALYSIS.generar(res, Q, state.perfil.respuestas).html;
     const generales = Q.dimensiones.map((d) => {
       const tr = trayectoria(res.map((r) => r.indices[d.id]));
-      return `<tr><td><strong>${d.nombre}</strong></td><td class="num">${actual.indices[d.id]} / 100</td><td>${tr ? `${tr.titulo} (${tr.delta >= 0 ? "+" : ""}${tr.delta} puntos desde ${res[0].nombre.toLowerCase()})` : "Una sola etapa evaluada"}</td></tr>`;
+      return `<tr><td><strong>${d.nombre}</strong></td><td class="val">${actual.indices[d.id]} / 100</td><td>${tr ? `${tr.titulo} (${tr.delta >= 0 ? "+" : ""}${tr.delta} puntos desde ${res[0].nombre.toLowerCase()})` : "Una sola etapa evaluada"}</td></tr>`;
     }).join("");
     const tabla = `<table class="tabla-print"><thead><tr><th>Etapa</th>${Q.dimensiones.map((d) => `<th>${d.nombre}</th>`).join("")}</tr></thead>
-      <tbody>${res.map((r) => `<tr><td>${r.nombre}</td>${Q.dimensiones.map((d) => `<td class="num">${r.indices[d.id]} <span class="muted">(${r.detalle[d.id].puntos}/${r.detalle[d.id].max} pts)</span></td>`).join("")}</tr>`).join("")}</tbody></table>`;
+      <tbody>${res.map((r) => `<tr><td>${r.nombre}</td>${Q.dimensiones.map((d) => `<td class="val">${r.indices[d.id]} <span class="muted">(${r.detalle[d.id].puntos}/${r.detalle[d.id].max} pts)</span></td>`).join("")}</tr>`).join("")}</tbody></table>`;
 
     let el = $("#informe-print");
     if (!el) { el = document.createElement("div"); el.id = "informe-print"; document.body.appendChild(el); }
@@ -464,7 +464,7 @@
       <div class="fila-print">
         <div class="col-cuadrante" id="print-cuadrante"></div>
         <div class="col-texto"><p>Eje horizontal: capital cultural. Eje vertical: capital económico. Las líneas punteadas verdes marcan el umbral de 50 puntos. Cada punto numerado es una etapa, unida en orden cronológico; el punto rojo es la última etapa evaluada.</p>
-        <p>${res.map((r, i) => `${i + 1} = ${r.nombre} (${r.indices.cultural}, ${r.indices.economico})`).join("; ")}.</p></div>
+        <ul class="lista-etapas">${res.map((r, i) => `<li><strong>${i + 1}</strong> = ${r.nombre}: cultural ${r.indices.cultural}, económico ${r.indices.economico}</li>`).join("")}</ul></div>
       </div>
 
       <h2>4. Análisis detallado</h2>
