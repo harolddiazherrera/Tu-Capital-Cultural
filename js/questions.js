@@ -25,7 +25,7 @@
 window.QUESTIONNAIRE = {
   meta: {
     titulo: "Trayectoria de capital cultural y económico",
-    version: "0.4.2",
+    version: "0.4.3",
     nota: "Instrumento indicativo con fines exploratorios y educativos. No ha sido validado psicométricamente. Las respuestas se guardan únicamente en tu navegador y no se envían a ningún servidor."
   },
 
